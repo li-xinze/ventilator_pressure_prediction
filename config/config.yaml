@@ -1,0 +1,51 @@
+# Parameters which usually need to be changed:
+# --------------------------------------
+# general_config
+#   pipeline: train_valid, train, pred
+#   num_epochs: max epoch 
+#   result_path: path to save experiment result, {} will be filled with model name by default
+#   early_stop_callback->patience: early_stop patience
+# model_config
+# data_config
+#   batch_size
+# --------------------------------------
+
+general_config:
+  pipeline: ['train_valid']
+  gpus: [1, 2, 3, 4, 6, 7]
+  num_epochs: 500
+  global_seed: 42
+  result_path: result/10_01/{}
+  load_ckpt_path: 'result/10_01/LSTMv1/2/kaggle_ventilator/epoch=1-step=25.ckpt'
+  mode: min
+  monitor: mae
+  early_stop_callback:
+    min_delta: 0
+    patience: 50
+    verbose: True  
+  
+  checkpoint_callback:
+    save_top_k: 1
+    verbose: True
+
+  trainer_config:
+    num_sanity_val_steps: 0
+    deterministic: True
+    sync_batchnorm: True
+    terminate_on_nan: True
+    accelerator: 'ddp'  # accelerator will be changed to 'null' automatically if single GPU is used 
+
+# Currently supported models: LSTMv1, Transformer
+model_config:
+  model: LSTMv1
+  embedding_dim: 8
+  lr: 0.0004
+
+data_config:
+  dataset: kaggle_ventilator
+  processor: v1
+  num_workers: 0
+  batch_size: 128
+  train_data_path: data/train.csv
+  test_data_path: data/test.csv
+  
