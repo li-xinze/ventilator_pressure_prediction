@@ -84,5 +84,4 @@ def update_save_path(params: Dict) -> Dict:
         path_to_results = os.path.join(params['general_config']['result_path'], params['data_config']['dataset'])
         mkdir_p(path_to_results)
         params['general_config']['trial_path'] = path_to_results
-        save_config(params, path_to_results)
     return params

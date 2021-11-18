@@ -4,7 +4,8 @@
 # @Project     : ventilator_pressure_prediction
 # @Description : Dataset and dataloader 
 
-
+import os
+from numpy.lib.function_base import select
 import torch
 import pandas as pd
 from sklearn.model_selection import GroupShuffleSplit
@@ -54,12 +55,14 @@ class VentiatorDataset(Dataset):
         df = self.data
         for column in ['id', 'breath_id']:
             df.drop(column, axis=1, inplace=True)
-
+        
+        
+        RS = RobustScaler()
+        # self.X = RS.fit_transform( df.drop('pressure', axis=1)).reshape(-1, 80, df.shape[-1] - 1)
         self.X = df.drop('pressure', axis=1).to_numpy().reshape(-1, 80, df.shape[-1] - 1)
         self.y = df[['pressure']].to_numpy().reshape(-1, 80, 1)
         self.u_out = df[['u_out']].to_numpy().reshape(-1, 80, 1)
-        # RS = RobustScaler()
-        # X = RS.fit_transform(X)
+
         
         
 class DataloaderGenerator():
@@ -79,16 +82,27 @@ class DataloaderGenerator():
     def load_dataloader(self, data_dict: Dict) -> Dict:
         dataloaders = {}
         config = {
-            'batch_size': self.args['batch_size'],
-            'num_workers': self.args['num_workers'],
+            'batch_size': self.args['data_config']['batch_size'],
+            'num_workers': self.args['data_config']['num_workers'],
             'collate_fn': self.collate_fn
         }
         for k, v in data_dict.items():
-            if 'train' in k:
-                dataloaders[k + '_loader'] = DataLoader(dataset=v, shuffle=True, **config)
-            else:
+            if 'test' in k:
                 dataloaders[k + '_loader'] = DataLoader(dataset=v, shuffle=False, **config)
+            else:
+                dataloaders[k + '_loader'] = DataLoader(dataset=v, shuffle=True, **config)
         return dataloaders
+
+    def record_split(self, train_data, val_data):
+        train_breath_id = train_data.breath_id.unique().tolist()
+        val_breath_id = val_data.breath_id.unique().tolist()
+        split_dict = {
+            'train': str(train_breath_id),
+            'val': str(val_breath_id)
+        }
+        split_df = pd.DataFrame([split_dict])
+        save_path = os.path.join(self.args['general_config']['trial_path'], 'split.csv')
+        split_df.to_csv(save_path, index=False)
 
     def generate_dataset(self, data: pd.DataFrame) -> Dict:
         """gengerate dataset dict acorrding to the mode
@@ -103,16 +117,22 @@ class DataloaderGenerator():
             groups = data.breath_id
             gss = GroupShuffleSplit(n_splits=2, train_size=.8, random_state=42)
             train_idx , val_idx = next(gss.split(data, groups=groups))
-            train_data = data.iloc[train_idx]
-            val_data = data.iloc[val_idx]
+            train_data = data.iloc[train_idx].copy()
+            val_data = data.iloc[val_idx].copy()
+            self.record_split(train_data, val_data)
             data_dict['train'] = VentiatorDataset(train_data)
             data_dict['val'] = VentiatorDataset(val_data)
+            
         elif self.mode == 'train':
             data_dict['train'] = VentiatorDataset(data)
         elif self.mode == 'pred':
             data_dict['test'] = VentiatorDataset(data)
-    
+
         return data_dict
+
+    def get_input_dim(self, data_dict: Dict) -> int:
+        X, y, u_out = list(data_dict.values())[0][0]
+        return X.shape[-1]
 
     def generate_dataloader(self) -> Dict:
         """generate dataloader
@@ -122,13 +142,14 @@ class DataloaderGenerator():
             Dict: dataloader dict
         """
         if 'train' in self.mode:
-            data = pd.read_csv(self.args['train_data_path'])
+            data = pd.read_csv(self.args['data_config']['train_data_path'])
         elif self.mode == 'pred':
-            data = pd.read_csv(self.args['test_data_path'])
+            data = pd.read_csv(self.args['data_config']['test_data_path'])
             data['pressure'] = 0
 
-        data = DATASET_PROCESSOR_MAP[self.args['processor']](data, self.mode)
+        data = DATASET_PROCESSOR_MAP[self.args['data_config']['processor']](data, self.mode)
         data_dict = self.generate_dataset(data)
-        return self.load_dataloader(data_dict)
+        input_dim = self.get_input_dim(data_dict)
+        return self.load_dataloader(data_dict), input_dim
 
 

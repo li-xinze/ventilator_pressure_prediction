@@ -14,8 +14,9 @@ from abc import ABC
 from abc import abstractmethod
 from typing import Any
 from typing import Dict
+from mldm_project.config import save_config
 from mldm_project.models.lstm_v1 import LSTMv1
-# from mldm_project.models.transformer import TransformerModel
+from mldm_project.models.transformer import TransformerModel
 from mldm_project.data import  DataloaderGenerator
 from pytorch_lightning.plugins import DDPPlugin
 from mldm_project.utils import generate_checkpoint_callback
@@ -24,7 +25,7 @@ from mldm_project.utils import generate_early_stop_callback
 
 MODEL_MAP = {
     'LSTMv1': LSTMv1,
-    # 'Transformer': TransformerModel
+    'Transformer': TransformerModel
 }
 
 
@@ -32,15 +33,18 @@ class BasePipeline(ABC):
     """
     Pipeline's abstract base class，which defines basic methods of pipeline
     """
+    def __init__(self, args: Dict, mode: str):
+        self.args = args
+        self.mode = mode
+        self.dataloder = DataloaderGenerator(args, mode) 
+
+    def record_config(self, input_dim):
+        self.args['model_config']['input_dim'] = input_dim
+        save_config(self.args, self.args['general_config']['trial_path'])
+
     @abstractmethod
     def run(self):
         pass
-
-    def train(self):
-        raise NotImplementedError('The train method is not realized!')
-
-    def test(self):
-        raise NotImplementedError('The test method is not realized!')
 
     def build_trainer(self):
         raise NotImplementedError('The build_trainer method is not realized!')
@@ -58,11 +62,9 @@ class TrainPipeline(BasePipeline):
         mode (str): current mode in pipeline
         dataloder (Dict): dict of DataLoader objects
     """
-    def __init__(self, args: Dict, mode: str):
-        self.args = args
-        self.mode = mode
-        self.model = MODEL_MAP[args['model_config']['model']](args['model_config'])
-        self.dataloder = DataloaderGenerator(args['data_config'], mode) 
+
+    def build_model(self):
+        return MODEL_MAP[self.args['model_config']['model']](self.args['model_config'])
 
     def build_trainer(self) -> pl.Trainer:
         """build_trainer
@@ -77,13 +79,13 @@ class TrainPipeline(BasePipeline):
                             plugins=DDPPlugin(find_unused_parameters=False),
                             **self.args['general_config']['trainer_config'])
 
-    def train(self, dataloaders: Dict): 
+    def train(self, dataloaders: Dict, model: Any): 
         """model training 
 
         Args:
             dataloaders (Dict): dataloader dict
         """
-        self.trainer.fit(self.model, dataloaders['train_loader'])
+        self.trainer.fit(model, dataloaders['train_loader'])
 
     def save_model(self):
         """save model in trail_path
@@ -95,9 +97,11 @@ class TrainPipeline(BasePipeline):
         self.args['general_config']['load_ckpt_path'] = ckpt_path
 
     def run(self):
-        dataloaders = self.dataloder.generate_dataloader()
+        dataloaders, input_dim = self.dataloder.generate_dataloader()
+        self.record_config(input_dim)
+        model = self.build_model()
         self.trainer = self.build_trainer()
-        self.train(dataloaders)
+        self.train(dataloaders, model)
         self.save_model()
 
 
@@ -106,15 +110,16 @@ class TrainValidPipeline(BasePipeline):
 
     Attributes:
         args (Dict): config
-        model (Subclass of BaseModel): model used
         mode (str): current mode in pipeline
         dataloder (Dict): dict of DataLoader objects
     """
     def __init__(self, args: Dict, mode: str):
         self.args = args
         self.mode = mode
-        self.model = MODEL_MAP[args['model_config']['model']](args['model_config'])
-        self.dataloder = DataloaderGenerator(args['data_config'], mode) 
+        self.dataloder = DataloaderGenerator(args, mode) 
+
+    def build_model(self):
+        return MODEL_MAP[self.args['model_config']['model']](self.args['model_config'])
 
     def build_trainer(self) -> pl.Trainer:
         """build_trainer
@@ -133,22 +138,24 @@ class TrainValidPipeline(BasePipeline):
                           callbacks=[self.early_stop_callback, self.checkpoint_callback],
                           **self.args['general_config']['trainer_config'])
 
-    def train(self, dataloaders: Dict):
+    def train(self, dataloaders: Dict, model: Any):
         """model training 
 
         Args:
             dataloaders (Dict): dataloader dict
         """
-        self.trainer.fit(self.model, dataloaders['train_loader'], dataloaders['val_loader'])
+        self.trainer.fit(model, dataloaders['train_loader'], dataloaders['val_loader'])
         ckpt_path = self.checkpoint_callback.best_model_path
         ckpt_name = os.path.basename(ckpt_path)
         self.args['general_config']['num_epochs'] = int(ckpt_name.split('-step')[0].split('epoch=')[-1]) + 1
         self.args['general_config']['load_ckpt_path'] = ckpt_path
 
     def run(self):
-        dataloaders = self.dataloder.generate_dataloader()
+        dataloaders, input_dim = self.dataloder.generate_dataloader()
+        self.record_config(input_dim)
+        model = self.build_model()
         self.trainer = self.build_trainer()
-        self.train(dataloaders)
+        self.train(dataloaders, model)
 
 
 class PredictPipeline(BasePipeline):
@@ -156,22 +163,22 @@ class PredictPipeline(BasePipeline):
 
     Attributes:
         args (Dict): config
-        model (Subclass of BaseModel): model used
         mode (str): current mode in pipeline
         dataloder (Dict): dict of DataLoader objects
     """
     def __init__(self, args: Dict, mode: str):
         self.args = args
         self.mode = mode
-        self.dataloder = DataloaderGenerator(args['data_config'], mode) 
-        path = self.args['general_config']['load_ckpt_path']
-        self.model = MODEL_MAP[self.args['model_config']['model']].load_from_checkpoint(checkpoint_path=path,
-                                                                                  args=self.args['model_config'])
+        self.dataloder = DataloaderGenerator(args, mode) 
+        
+    def build_model(self):
+        return MODEL_MAP[self.args['model_config']['model']].load_from_checkpoint(checkpoint_path=self.args['general_config']['load_ckpt_path'],
+                                                                                   args=self.args['model_config'])
 
     def build_trainer(self) -> pl.Trainer:
         return pl.Trainer(gpus=self.args['general_config']['gpus'][:1])
 
-    def predict(self, dataloaders: Dict) -> np.ndarray:
+    def predict(self, dataloaders: Dict, model: Any) -> np.ndarray:
         """inference 
 
         Args:
@@ -191,9 +198,11 @@ class PredictPipeline(BasePipeline):
         """
         data = pd.read_csv(self.args['data_config']['test_data_path'])
         data = data[['id']]
+        dataloaders, input_dim = self.dataloder.generate_dataloader()
+        self.record_config(input_dim)
         self.trainer = self.build_trainer()
-        dataloaders = self.dataloder.generate_dataloader()
-        data['pressure'] = self.predict(dataloaders)
+        model = self.build_model()
+        data['pressure'] = self.predict(dataloaders, model)
         save_path = os.path.join(os.path.dirname(self.args['general_config']['load_ckpt_path']),
                                  os.path.basename(self.args['data_config']['test_data_path']).replace('.csv', '_PRED.csv'))
         data.to_csv(save_path, index=False)

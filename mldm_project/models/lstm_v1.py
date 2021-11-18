@@ -17,7 +17,7 @@ class LSTMv1(BaseModel):
         super(LSTMv1, self).__init__(args)
 
         self.lr = self.lr = args['lr']
-        input_dim = args['embedding_dim']
+        input_dim = args['input_dim']
         
         self.lstm_1 = nn.LSTM(input_dim, 300, bidirectional=True)
         self.lstm_2 = nn.LSTM(600, 250, bidirectional=True)

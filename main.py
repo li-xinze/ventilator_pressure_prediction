@@ -4,13 +4,14 @@
 # @Project     : ventilator_pressure_prediction
 # @Description : Entry
 
-
+import os
 import torch
 import argparse
 import pytorch_lightning as pl
 
 from typing import Dict
 from mldm_project.utils import print_run_time
+from mldm_project.utils import save_yaml
 from mldm_project.config import load_config
 from mldm_project.config import update_save_path
 from mldm_project.pipeline import PredictPipeline
@@ -62,6 +63,14 @@ def jupyter_run(config='config/config.yaml'):
     run(args)
 
 
+def multi_gpu_run(args):
+    save_path = os.path.join(args['general_config']['result_path'], 'hparams.yaml')
+    save_yaml(save_path, params)
+    for p in params['general_config']['pipeline']:
+        os.system("python run_pipeline.py -p {} -hp {}".format(p, save_path))
+    os.remove(save_path)
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('-c', '--config', type=str, default='config/config.yaml', help='Running config path')
@@ -69,4 +78,7 @@ if __name__ == "__main__":
     params = load_config(args.config)
     params = update_save_path(params)
     params['model_config']['on_jupyter'] = False
-    run(params)
+    if len(params['general_config']['gpus']) > 1:
+        multi_gpu_run(params)
+    else:
+        run(params)
