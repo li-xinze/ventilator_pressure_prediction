@@ -12,11 +12,11 @@
 
 general_config:
   pipeline: ['train_valid']
-  gpus: [1, 2, 3, 4, 6, 7]
+  gpus: [5]
   num_epochs: 500
   global_seed: 42
-  result_path: result/10_01/{}
-  load_ckpt_path: 'result/10_01/LSTMv1/2/kaggle_ventilator/epoch=1-step=25.ckpt'
+  result_path: result/10_07/{}
+  load_ckpt_path: 'result/10_07/LSTMv1/2/kaggle_ventilator/epoch=1-step=25.ckpt'
   mode: min
   monitor: mae
   early_stop_callback:
@@ -38,14 +38,14 @@ general_config:
 # Currently supported models: LSTMv1, Transformer
 model_config:
   model: LSTMv1
-  embedding_dim: 8
   lr: 0.0004
 
 data_config:
   dataset: kaggle_ventilator
-  processor: v1
+  processor: v2
   num_workers: 0
-  batch_size: 128
+  batch_size: 256
   train_data_path: data/train.csv
   test_data_path: data/test.csv
+  remark: 5_50
   
