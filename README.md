@@ -17,7 +17,13 @@ Authors:
 | Xinze Li  | мНОД\_ИССА\_2020 | <sli_4@edu.hse.ru> | [li-xinze][xinze] |
 | Katarina Kuchuk  | мНОД\_ИССА\_2020 | <kkuchuk@edu.hse.ru> | [Kale2601][katarina] |
 
-There are tow branches: <font color=#FF0000>torch</font> and <font color=#FF0000>tf</font>, we mainly focus on tf version now.
+There are tow branches:
+
+![#1589F0](https://via.placeholder.com/15/1589F0/000000?text=+) `torch`
+
+![#1589F0](https://via.placeholder.com/15/1589F0/000000?text=+) `tf`
+
+we mainly focus on tf version now.
 
 ### Task list
 
