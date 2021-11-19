@@ -51,7 +51,7 @@ Currently supported modes in pipeline are: <br/>
 `train`: merge train and val dataset to train a model<br/>
 `pred`: pred on test.csv, get submission file <br/>
 
-A template of config file: `configs/config.yaml`
+A template of config file: `config/config.yaml`
 
 
 ### Run
@@ -79,19 +79,19 @@ main.ipynb
 ### How to contribute
 
 #### 1 Add a new model
-- Add your our model under the folder `mldm_project/models`, the model should inherit from the BaseModel class
+- Add your our model under the folder `project/model`, the model should inherit from the BaseModel class
 
 ```
-from mldm_project.models.base_model import BaseModel
+from project.model.base_model import BaseModel
 
 class YourModel(BaseModel):
 	...
 ```
 
-- Register your model in `MODELS_MAP` in `mldm_project/pipeline.py`
+- Register your model in `MODELS_MAP` in `project/pipeline.py`
 
 ```
-from mldm_project.models.your_model.py import YourModel
+from project.model.your_model.py import YourModel
 
 MODEL_MAP = {
 	'LSTMv1': LSTMv1,
@@ -107,11 +107,11 @@ model_config:
 ```
 
 #### 2 Add a new data processor
-- Add your processor in `mldm_project/data_processor.py`
-- Register your processor in `DATASET_PROCESSOR_MAP` in `mldm_project/data.py`
+- Add your processor in `project/data_processor.py`
+- Register your processor in `DATASET_PROCESSOR_MAP` in `project/data.py`
 
 ```
-from mldm_project.data_processor import your_processor
+from project.data_processor import your_processor
 
 DATASET_PROCESSOR_MAP = {
     'v1': processor_v1,
