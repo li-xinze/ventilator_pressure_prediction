@@ -1,6 +1,0 @@
-mldm_project/__pycache__/
-mldm_project/models/__pycache__/
-notebooks/.ipynb_checkpoints/
-*.csv
-.ipynb_checkpoints/
-result/
