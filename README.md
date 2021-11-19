@@ -29,7 +29,7 @@ Authors:
 	- [x] LSTMv2, TCN, ... [@Katarina][katarina]
 	- [ ] ... 
 - [x] Grouping strategy 
-- [x] Error Analysis tools [@Katarina][katarina], [@Katarina][katarina]
+- [x] Error Analysis tools [@Xinze][xinze], [@Katarina][katarina]
 - [x] Final submission before the dealine (693/2605 in public leaderboard)
 - [ ] Late submissions
 
