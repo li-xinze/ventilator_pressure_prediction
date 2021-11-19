@@ -30,7 +30,7 @@ Authors:
 	- [ ] ... 
 - [x] Grouping strategy 
 - [x] Error Analysis tools [@Xinze][xinze], [@Katarina][katarina]
-- [x] Final submission before the dealine (693/2605 in public leaderboard)
+- [x] Final submission before the deadline (693/2605 in public leaderboard)
 - [ ] Late submissions
 
 ### Prepare data
