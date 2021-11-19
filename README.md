@@ -85,8 +85,8 @@ main.ipynb
 
 ```
 MODEL_MAP = {
-	'LSTMv1': LSTMv1,
-	'your_model_name': YourModel
+	'v1': get_model_v1,
+	'your_model_name': your_model
 }
 ```
 
