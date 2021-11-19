@@ -23,7 +23,7 @@ Authors:
 
 - [x] Framework
 	- [x] PyTorch version (branch torch)[@Xinze][xinze]
-	- [x] Tensorflow version (branch tf) [@Xinze][xinze]
+	- [x] Tensorflow version (branch tf) [@Katarina][katarina]
 - [ ] Models
 	- [x] LSTMv1, Transformers, ... [@Xinze][xinze]
 	- [x] LSTMv2, TCN, ... [@Katarina][katarina]
