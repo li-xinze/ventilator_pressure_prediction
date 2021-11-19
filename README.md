@@ -12,32 +12,26 @@
 
 Authors: 
 
-|  Name   | Group  | Email |
-|  ----   | ----   | ----  |
-| Xinze Li  | мНОД\_ИССА\_2020 | <sli_4@edu.hse.ru> 
-| Katarina Kuchuk  | мНОД\_ИССА\_2020 | <kkuchuk@edu.hse.ru>
+|  Name   | Group  | Email | Github |
+|  ----   | ----   | ----  | ---- |
+| Xinze Li  | мНОД\_ИССА\_2020 | <sli_4@edu.hse.ru> | [li-xinze][xinze] |
+| Katarina Kuchuk  | мНОД\_ИССА\_2020 | <kkuchuk@edu.hse.ru> | [Kale2601][katarina] |
 
 
 
 ### Task list
 
-- [ ] Framework
-	- [x] Basic framework [@Xinze][xinze]
-	- [ ] Add train_cv mode [@Xinze][xinze]
+- [x] Framework
+	- [x] PyTorch version (branch torch)[@Xinze][xinze]
+	- [x] Tensorflow version (branch tf) [@Xinze][xinze]
 - [ ] Models
-	- [x] LSTMv1 [@Xinze][xinze]
-	- [ ] A Model [@Katarina][katarina]
+	- [x] LSTMv1, Transformers, ... [@Xinze][xinze]
+	- [x] LSTMv2, TCN, ... [@Katarina][katarina]
 	- [ ] ... 
-- [ ] Data processors
-	- [x] v1 [@Xinze][xinze]
-	- [ ] v2 [@Katarina][katarina]
-	- [ ] ...
-- [ ] EDA
-	- [x] v1 [@Xinze][xinze] 
-	- [ ] v2 [@Katarina][katarina]
-- [ ] Grouping strategy 
-- [ ] Prediction Analysis tools [@Katarina][katarina]
-- [ ] FIRST SUBMISSION (06.10)
+- [x] Grouping strategy 
+- [x] Error Analysis tools [@Katarina][katarina], [@Katarina][katarina]
+- [x] Final submission before the dealine (693/2605 in public leaderboard)
+- [ ] Late submissions
 
 ### Prepare data
 Download dataset from [here](https://www.kaggle.com/c/ventilator-pressure-prediction/data) <br>
