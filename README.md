@@ -84,7 +84,6 @@ main.ipynb
 - Register your model in `MODEL_MAP` in `project/model.py`
 
 ```
-
 MODEL_MAP = {
 	'LSTMv1': LSTMv1,
 	'your_model_name': YourModel
@@ -103,7 +102,6 @@ model_config:
 - Register your processor in `DATASET_PROCESSOR_MAP` in `project/data_processor.py`
 
 ```
-
 DATASET_PROCESSOR_MAP = {
     'v1': processor_v1,
     'your_processor_name': your_processor
